@@ -4,7 +4,7 @@ app = Flask(__name__)
 
 profile = {
     "username": "Swiper",
-    "profile_pic": "https://example.com/path/to/profile.jpg",  # Replace with your image URL
+    "profile_pic": "https://www.basedlabs.ai/ideas/pfps/black-and-white-discord-pfp--3093",  # Replace with your image URL
     "links": {
         "LinkedIn": "https://linkedin.com/in/swiper",
         "Discord": "https://discord.com/@Swiperrrrrrrr"
