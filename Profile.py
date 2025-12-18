@@ -1,66 +1,112 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
+from PIL import Image, ImageTk
 
-# List of friends
-friends = ["Screamingcat", "Popcat", "Zen", "Foot_Licker", "W1NGZ"]
+class NetlifyDropboxUI(tk.Tk):
+    def __init__(self):
+        super().__init__()
+        self.title("Netlify Dropbox UI")
+        self.geometry("500x600")
+        self.configure(bg="#2c3e50")
 
-class ProfileApp:
-    def __init__(self, root):
-        self.root = root
-        self.root.title("Netlify Dropbox Profile")
-        self.root.geometry("400x600")
-        self.pfp_path = ""
-
-        # User Info Frame
-        user_frame = tk.Frame(root)
-        user_frame.pack(pady=10)
-
-        # Username Label
         self.username = "Swiper"
-        tk.Label(user_frame, text=f"Username: {self.username}", font=("Arial", 14)).pack()
+        self.friends = ["Screamingcat", "Popcat", "Zen", "Foot_Licker", "W1NGZ"]
+        self.languages = ["C++"]
 
-        # Profile picture chooser
-        self.pfp_label = tk.Label(user_frame, text="Profile Picture: None", font=("Arial", 12))
-        self.pfp_label.pack(pady=5)
-        tk.Button(user_frame, text="Choose Profile Picture", command=self.choose_pfp).pack()
+        self.pfp_image = None
+        self.pfp_path = None
 
-        # Friends List
-        friends_frame = tk.LabelFrame(root, text="Friends", padx=10, pady=10)
-        friends_frame.pack(pady=10, fill="both", expand=True)
-        self.friends_listbox = tk.Listbox(friends_frame)
-        for friend in friends:
-            self.friends_listbox.insert(tk.END, friend)
-        self.friends_listbox.pack(fill="both", expand=True)
+        self.create_widgets()
 
-        # Scripts section
-        scripts_frame = tk.LabelFrame(root, text="Scripts", padx=10, pady=10)
-        scripts_frame.pack(pady=10, fill="both", expand=True)
+    def create_widgets(self):
+        # Username label
+        user_label = tk.Label(self, text=f"User: {self.username}", font=("Helvetica", 18, "bold"), fg="white", bg="#2c3e50")
+        user_label.pack(pady=15)
 
-        # List of scripts
-        self.scripts = ["C++"]
-        self.scripts_listbox = tk.Listbox(scripts_frame)
-        for script in self.scripts:
-            self.scripts_listbox.insert(tk.END, script)
-        self.scripts_listbox.pack(fill="both", expand=True)
+        # Profile picture frame
+        pfp_frame = tk.Frame(self, bg="#34495e", bd=2, relief="ridge")
+        pfp_frame.pack(pady=10)
 
-        # Add Script Button
-        tk.Button(scripts_frame, text="Add Script", command=self.add_script).pack(pady=5)
+        self.pfp_canvas = tk.Canvas(pfp_frame, width=150, height=150, bg="#ecf0f1", bd=0, highlightthickness=0)
+        self.pfp_canvas.pack()
+
+        # Default pfp placeholder
+        self.load_default_pfp()
+
+        # Button to choose pfp
+        choose_pfp_btn = tk.Button(self, text="Choose Profile Picture", command=self.choose_pfp, bg="#2980b9", fg="white", font=("Helvetica", 12, "bold"), relief="flat", padx=10, pady=5)
+        choose_pfp_btn.pack(pady=10)
+
+        # Friends list
+        friends_label = tk.Label(self, text="Friends:", font=("Helvetica", 16, "bold"), fg="white", bg="#2c3e50")
+        friends_label.pack(pady=(20, 5))
+
+        friends_frame = tk.Frame(self, bg="#34495e", bd=2, relief="ridge")
+        friends_frame.pack(pady=5, fill="x", padx=50)
+
+        for friend in self.friends:
+            f_label = tk.Label(friends_frame, text=friend, font=("Helvetica", 14), fg="#ecf0f1", bg="#34495e")
+            f_label.pack(anchor="w", padx=10, pady=2)
+
+        # Languages scripted on
+        lang_label = tk.Label(self, text="Languages I script on:", font=("Helvetica", 16, "bold"), fg="white", bg="#2c3e50")
+        lang_label.pack(pady=(20, 5))
+
+        lang_frame = tk.Frame(self, bg="#34495e", bd=2, relief="ridge")
+        lang_frame.pack(pady=5, fill="x", padx=50)
+
+        for lang in self.languages:
+            l_label = tk.Label(lang_frame, text=lang, font=("Helvetica", 14), fg="#ecf0f1", bg="#34495e")
+            l_label.pack(anchor="w", padx=10, pady=2)
+
+        # Dropbox upload simulation button
+        upload_btn = tk.Button(self, text="Upload to Dropbox (Simulated)", command=self.simulate_upload, bg="#27ae60", fg="white", font=("Helvetica", 14, "bold"), relief="flat", padx=10, pady=8)
+        upload_btn.pack(pady=30)
+
+    def load_default_pfp(self):
+        # Create a simple placeholder image (gray circle)
+        size = (150, 150)
+        img = Image.new("RGBA", size, (200, 200, 200, 255))
+        mask = Image.new("L", size, 0)
+        mask_draw = Image.new("L", size, 0)
+        from PIL import ImageDraw
+        draw = ImageDraw.Draw(mask)
+        draw.ellipse((0, 0, size[0], size[1]), fill=255)
+        img.putalpha(mask)
+        self.pfp_image = ImageTk.PhotoImage(img)
+        self.pfp_canvas.create_image(75, 75, image=self.pfp_image)
 
     def choose_pfp(self):
-        path = filedialog.askopenfilename(title="Select Profile Picture",
-                                          filetypes=[("Image Files", "*.png;*.jpg;*.jpeg;*.gif")])
+        filetypes = [("Image files", "*.png *.jpg *.jpeg *.gif *.bmp")]
+        path = filedialog.askopenfilename(title="Choose Profile Picture", filetypes=filetypes)
         if path:
-            self.pfp_path = path
-            self.pfp_label.config(text=f"Profile Picture: {path.split('/')[-1]}")
+            try:
+                img = Image.open(path)
+                img = img.convert("RGBA")
+                img = img.resize((150, 150), Image.ANTIALIAS)
+                # Make circle mask
+                mask = Image.new("L", (150, 150), 0)
+                draw = ImageDraw.Draw(mask)
+                draw.ellipse((0, 0, 150, 150), fill=255)
+                img.putalpha(mask)
+                self.pfp_image = ImageTk.PhotoImage(img)
+                self.pfp_canvas.delete("all")
+                self.pfp_canvas.create_image(75, 75, image=self.pfp_image)
+                self.pfp_path = path
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to load image:\n{e}")
 
-    def add_script(self):
-        # For simplicity, adding a fixed script type
-        new_script = "Python"
-        self.scripts.append(new_script)
-        self.scripts_listbox.insert(tk.END, new_script)
-        messagebox.showinfo("Script Added", f"Added {new_script} script!")
+    def simulate_upload(self):
+        msg = f"Uploading profile for {self.username} to Dropbox...\n"
+        if self.pfp_path:
+            msg += f"Profile picture: {self.pfp_path}\n"
+        else:
+            msg += "Profile picture: Default\n"
+        msg += f"Friends: {', '.join(self.friends)}\n"
+        msg += f"Languages: {', '.join(self.languages)}\n"
+        msg += "\nUpload simulated successfully!"
+        messagebox.showinfo("Dropbox Upload", msg)
 
 if __name__ == "__main__":
-    root = tk.Tk()
-    app = ProfileApp(root)
-    root.mainloop()
+    app = NetlifyDropboxUI()
+    app.mainloop()
